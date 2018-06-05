@@ -1,0 +1,55 @@
+# Name of our service
+service: daily-instance-snapshot
+
+# The required version of serverless we have to be using for this to work
+frameworkVersion: ">=1.26.0 <2.0.0"
+
+##############################
+# Our service provider and runtime/region definitions
+##############################
+provider:
+  name: aws                       # Which provider to use
+  description: "Daily Snapshot Rotation Lambda"
+  stage: ${opt:stage, 'dev'}      # Which stage to deploy to
+  runtime: python3.6              # Which Lambda runtime to use
+  logRetentionInDays: 30          # How many days we want to maintain logs in CloudWatch
+  region: 'eu-west-1'             # Which AWS region to deploy in, eu-west-1 by default, but overridable
+  memorySize: 128                 # In megabytes, 128 minimum in 64MB increments
+  timeout: 300                    # In seconds
+  versionFunctions:  true         # We want to version our functions so we can revert if we need to
+  cfLogs: true                    # This allows us to customize our expiration time of our CloudWatch Log Buckets
+  iamRoleStatements:
+  # We must be able to do what this script needs to do... 
+  - Effect: Allow
+    Action:
+      - ec2:DescribeImages
+      - ec2:DescribeInstances
+      - ec2:CreateImage
+      - ec2:CreateTags
+      - ec2:DeregisterImage
+      - ec2:DeleteSnapshot
+    Resource: "*"
+
+
+##############################
+# Our function definition
+##############################
+functions:
+  daily_snapshot:
+    description: This does a daily snapshot of all our instances we want to be manually backed up to AMIs
+    handler: handler.lambda_handler
+    events:
+      - schedule:
+          description: Once a day for AMI backups
+          rate: rate(1 day)
+          enabled: true
+
+##############################
+package:
+  exclude:
+    - ".DS_Store"
+    - ".git"
+    - ".gitignore"
+    - ".serverless"
+    - "requirements.txt"
+    - "**.md"
