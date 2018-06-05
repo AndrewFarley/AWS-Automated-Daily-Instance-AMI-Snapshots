@@ -11,6 +11,15 @@ With serverless!
 1. To try to save them money in regards to backups by deleting them after a while (7 days by default)
 
 
+## What does this do...?
+1. This uses the serverless framework, which generates a CloudFormation stack and deploys it to your AWS account in the eu-west-1 region (adjustable)
+1. This CloudFormation stack deploys a Lambda and a role for this lambda to allow it to do what it needs to do.
+1. Finally this CloudFormation stack configures that Lambda to be executed once a day automatically via CloudWatch Events.
+1. When this lambda runs, it scans through EVERY AWS region for any instances with the tag Key of "backup".  If it finds any, it will create a snapshot of them, preserving all the tags
+1. After its done taking snapshots, it will then scan through all the AMIs that this script created, and will evaluate if it's time to delete those AMIs if they are old enough
+1. THAT's IT!  You don't have to do anything, just install this, and start backing up your servers.
+
+
 ## Prerequisites
 
 - [Serverless Framework v1.0+](https://serverless.com/)
@@ -19,13 +28,47 @@ With serverless!
 
 ## Setup
 
-* Make sure your CLI has a default AWS credentials setup (via ```aws configure```) or that you have chosen a profile and can use the aws CLI properly on your terminal.  Additionally make sure you have NodeJS installed 4.3+ installed on your machine.
+```bash
+# Make sure your CLI has a default AWS credentials setup, if not run this...
+aws configure
 
-* Clone this repository with ```git clone git@github.com:AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots.git``` then enter the folder with ```cd AWSAutomatedDailyInstanceAMISnapshots``` and run ```serverless deploy```
+# Clone this repository with...
+git clone git@github.com:AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots.git
+cd AWSAutomatedDailyInstanceAMISnapshots
 
-* Go into your AWS Console and tag any instances you want to be backed up with the tag Key "backup".  The value can be anything, or nothing, it just scans for the key.
+# Deploy it with...
+serverless deploy
 
-* That's IT!  To make sure your tag works, go run the lambda yourself manually and check the log output.  To do this from the command line just run `serverless invoke --function daily_snapshot --log` or go to the Lambda console and do it from there.  This project deploys to the eu-west-1 region by default, so you'll find it there.  But, it runs across your ENTIRE AWS ACCOUNT by default, so it doesn't matter where it is deployed.
+# Run it manually with...
+serverless invoke --function daily_snapshot --log
+```
+
+That's IT!  Now go tag your instances (manually, or automatically if you have an automated infrastructure) with the Key "backup" which will trigger this script to back it up.  After tagging some servers, try to run it manually again and check the output to see if it detected your server. To make sure your tag works, go run the lambda yourself manually and check the log output.  If you tagged some instances and it ran successfully, your output will look something like this...
+
+```bash
+bash-3.2$ serverless invoke --function daily_snapshot --log
+--------------------------------------------------------------------
+Scanning region: eu-central-1
+Scanning for instances with tags (backup,Backup)
+  Found 2 instances to backup...
+  Instance: i-00001111222233334
+      Name: jenkins-build-server
+      Time: 7 days
+       AMI: ami-00112233445566778
+  Instance: i-55556666777788889
+      Name: primary-webserver
+      Time: 7 days
+       AMI: ami-11223344556677889
+Scanning for AMIs with tags (FarleysBackupInstanceRotater)
+  Found AMI to consider: ami-008e6cb79f78f1469
+           Delete After: 06-12-2018
+This item is too new, skipping...
+Scanning region: eu-west-1
+Scanning for instances with tags (backup,Backup)
+  Found 0 instances to backup...
+Scanning for AMIs with tags (FarleysBackupInstanceRotater)
+Scanning region: eu-west-2
+```
 
 ## Removal
 
