@@ -31,7 +31,7 @@ def backup_tagged_instances_in_region(ec2):
     
     print("Scanning for instances with tags ({})".format(','.join(tags_to_find)))
 
-    # Get our instances
+    # Get our reservations
     try:
         reservations = ec2.describe_instances(Filters=[{'Name': 'tag-key', 'Values': tags_to_find}])['Reservations']
     except:
@@ -41,7 +41,14 @@ def backup_tagged_instances_in_region(ec2):
             return
         else:
             raise
-    instances = [[i for i in r['Instances']][0] for r in reservations]
+
+    # Iterate through reservations and get instances
+    instance_reservations = [[i for i in r['Instances']] for r in reservations]
+    # TODO: Help I can't do this pythonically...  PR welcome...
+    instances = []
+    for instance_reservation in instance_reservations:
+        for this_instance in instance_reservation:
+            instances.append(this_instance)
 
     # Get our instances and iterate through them...
     print("  Found {} instances to backup...".format(len(instances)))
