@@ -48,7 +48,8 @@ def backup_tagged_instances_in_region(ec2):
     instances = []
     for instance_reservation in instance_reservations:
         for this_instance in instance_reservation:
-            instances.append(this_instance)
+            if this_instance['State']['Name'] != 'terminated':
+                instances.append(this_instance)
 
     # Get our instances and iterate through them...
     print("  Found {} instances to backup...".format(len(instances)))
