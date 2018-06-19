@@ -5,6 +5,7 @@
 ####################
 import boto3
 import sys
+import traceback
 import datetime
 import time
 
@@ -48,7 +49,8 @@ def backup_tagged_instances_in_region(ec2):
     instances = []
     for instance_reservation in instance_reservations:
         for this_instance in instance_reservation:
-            instances.append(this_instance)
+            if this_instance['State']['Name'] != 'terminated':
+                instances.append(this_instance)
 
     # Get our instances and iterate through them...
     print("  Found {} instances to backup...".format(len(instances)))
@@ -70,24 +72,30 @@ def backup_tagged_instances_in_region(ec2):
         print('      Time: {} days'.format(retention_days))
         
         # Create our AMI
-        image = ec2.create_image(
-            InstanceId=instance['InstanceId'],
-            Name="{}-backup-{}".format(instance_name, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')),
-            Description="Automatic Daily Backup of {} from {}".format(instance_name, instance['InstanceId']),
-            NoReboot=True,
-            DryRun=False
-        )
-        print("       AMI: {}".format(image['ImageId']))
-        
-        # Tag our AMI appropriately
-        delete_fmt = (datetime.date.today() + datetime.timedelta(days=retention_days)).strftime('%m-%d-%Y')
-        instance['Tags'].append({'Key': 'DeleteAfter', 'Value': delete_fmt})
-        instance['Tags'].append({'Key': 'OriginalInstanceID', 'Value': instance['InstanceId']})
-        instance['Tags'].append({'Key': global_key_to_tag_on, 'Value': 'true'})
-        response = ec2.create_tags(
-            Resources=[image['ImageId']],
-            Tags=instance['Tags']
-        )
+        try:
+            image = ec2.create_image(
+                InstanceId=instance['InstanceId'],
+                Name="{}-backup-{}".format(instance_name, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')),
+                Description="Automatic Daily Backup of {} from {}".format(instance_name, instance['InstanceId']),
+                NoReboot=True,
+                DryRun=False
+            )
+            print("       AMI: {}".format(image['ImageId']))
+            
+            # Tag our AMI appropriately
+            delete_fmt = (datetime.date.today() + datetime.timedelta(days=retention_days)).strftime('%m-%d-%Y')
+            instance['Tags'].append({'Key': 'DeleteAfter', 'Value': delete_fmt})
+            instance['Tags'].append({'Key': 'OriginalInstanceID', 'Value': instance['InstanceId']})
+            instance['Tags'].append({'Key': global_key_to_tag_on, 'Value': 'true'})
+            response = ec2.create_tags(
+                Resources=[image['ImageId']],
+                Tags=instance['Tags']
+            )
+        except:
+            print("Failure trying to create image or tag image.  See/report exception below")
+            exc_info = sys.exc_info()
+            traceback.print_exception(*exc_info)
+
 
 
 #####################
@@ -139,8 +147,12 @@ def delete_expired_amis(ec2):
         # Delete all snapshots underneath that ami...
         for snapshot in [i['Ebs']['SnapshotId'] for i in ami['BlockDeviceMappings'] if 'Ebs' in i]:
             print(" === DELETING AMI {} SNAPSHOT : {}".format(ami['ImageId'], snapshot))
-            result = ec2.delete_snapshot(SnapshotId=snapshot)
-            print(result)
+            try:
+                result = ec2.delete_snapshot(SnapshotId=snapshot)
+            except:
+                print("ERROR deleting snapshot...")
+                exc_info = sys.exc_info()
+                traceback.print_exception(*exc_info)
 
 
 
