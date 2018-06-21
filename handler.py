@@ -6,6 +6,7 @@
 import boto3
 import os
 import sys
+import traceback
 import datetime
 import time
 
@@ -42,7 +43,7 @@ def backup_tagged_instances_in_region(ec2):
     
     print("Scanning for instances with tags ({})".format(','.join(tags_to_find)))
 
-    # Get our instances
+    # Get our reservations
     try:
         reservations = ec2.describe_instances(Filters=[{'Name': 'tag-key', 'Values': tags_to_find}])['Reservations']
     except:
@@ -52,7 +53,15 @@ def backup_tagged_instances_in_region(ec2):
             return
         else:
             raise
-    instances = [[i for i in r['Instances']][0] for r in reservations]
+
+    # Iterate through reservations and get instances
+    instance_reservations = [[i for i in r['Instances']] for r in reservations]
+    # TODO: Help I can't do this pythonically...  PR welcome...
+    instances = []
+    for instance_reservation in instance_reservations:
+        for this_instance in instance_reservation:
+            if this_instance['State']['Name'] != 'terminated':
+                instances.append(this_instance)
 
     # Get our instances and iterate through them...
     print("  Found {} instances to backup...".format(len(instances)))
@@ -79,26 +88,31 @@ def backup_tagged_instances_in_region(ec2):
             print("   InstanceId : {}".format(instance['InstanceId']))
             print("   Name       : {}".format("{}-backup-{}".format(instance_name, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))))
         else:
-            pass
             # Create our AMI
-            image = ec2.create_image(
-                InstanceId=instance['InstanceId'],
-                Name="{}-backup-{}".format(instance_name, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')),
-                Description="Automatic Daily Backup of {} from {}".format(instance_name, instance['InstanceId']),
-                NoReboot=True,
-                DryRun=False
-            )
-            print("       AMI: {}".format(image['ImageId']))
-            
-            # Tag our AMI appropriately
-            delete_fmt = (datetime.date.today() + datetime.timedelta(days=retention_days)).strftime('%m-%d-%Y')
-            instance['Tags'].append({'Key': 'DeleteAfter', 'Value': delete_fmt})
-            instance['Tags'].append({'Key': 'OriginalInstanceID', 'Value': instance['InstanceId']})
-            instance['Tags'].append({'Key': global_key_to_tag_on, 'Value': 'true'})
-            response = ec2.create_tags(
-                Resources=[image['ImageId']],
-                Tags=instance['Tags']
-            )
+            try:
+                image = ec2.create_image(
+                    InstanceId=instance['InstanceId'],
+                    Name="{}-backup-{}".format(instance_name, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')),
+                    Description="Automatic Daily Backup of {} from {}".format(instance_name, instance['InstanceId']),
+                    NoReboot=True,
+                    DryRun=False
+                )
+                print("       AMI: {}".format(image['ImageId']))
+                
+                # Tag our AMI appropriately
+                delete_fmt = (datetime.date.today() + datetime.timedelta(days=retention_days)).strftime('%m-%d-%Y')
+                instance['Tags'].append({'Key': 'DeleteAfter', 'Value': delete_fmt})
+                instance['Tags'].append({'Key': 'OriginalInstanceID', 'Value': instance['InstanceId']})
+                instance['Tags'].append({'Key': global_key_to_tag_on, 'Value': 'true'})
+                response = ec2.create_tags(
+                    Resources=[image['ImageId']],
+                    Tags=instance['Tags']
+                )
+        except:
+            print("Failure trying to create image or tag image.  See/report exception below")
+            exc_info = sys.exc_info()
+            traceback.print_exception(*exc_info)
+
 
 
 #####################
