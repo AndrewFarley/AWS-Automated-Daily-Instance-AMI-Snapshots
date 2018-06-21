@@ -17,7 +17,6 @@ With serverless!
 1. Finally this CloudFormation stack configures that Lambda to be executed once a day automatically via CloudWatch Events.
 1. When this lambda runs, it scans through EVERY AWS region for any instances with the tag Key of "backup".  If it finds any, it will create a snapshot of them, preserving all the tags
 1. After its done taking snapshots, it will then scan through all the AMIs that this script created, and will evaluate if it's time to delete those AMIs if they are old enough
-1. THAT's IT!  You don't have to do anything, just install this, and start backing up your servers.
 
 
 ## Prerequisites
@@ -43,7 +42,13 @@ serverless deploy
 serverless invoke --function daily_snapshot --log
 ```
 
-That's IT!  Now go tag your instances (manually, or automatically if you have an automated infrastructure) with the Key "backup" which will trigger this script to back it up.  After tagging some servers, try to run it manually again and check the output to see if it detected your server. To make sure your tag works, go run the lambda yourself manually and check the log output.  If you tagged some instances and it ran successfully, your output will look something like this...
+Now go tag your instances (manually, or automatically if you have an automated infrastructure like [Terraform](https://www.terraform.io/) or [CloudFormation](https://aws.amazon.com/cloudformation/)) with the Key "Backup" (with any value) which will trigger this script to back that instance up.
+
+If you'd like to specify the number of days to retain backups, set the key "Retention" with a numeric value.
+
+![ec2 image tag example](./snapshot.png)
+
+After tagging some servers, try to run it manually again and check the output to see if it detected your server. To make sure your tag works, go run the lambda yourself manually and check the log output.  If you tagged some instances and it ran successfully, your output will look something like this...
 
 ```bash
 bash-3.2$ serverless invoke --function daily_snapshot --log
@@ -69,6 +74,9 @@ Scanning for instances with tags (backup,Backup)
 Scanning for AMIs with tags (FarleysBackupInstanceRotater)
 Scanning region: eu-west-2
 ```
+
+### That's IT!
+Now every day, once a day this lambda will run and automatically make no-downtime snapshots of your servers.
 
 ## Removal
 
