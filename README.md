@@ -44,7 +44,7 @@ serverless invoke --function daily_snapshot --log
 
 Now go tag your instances (manually, or automatically if you have an automated infrastructure like [Terraform](https://www.terraform.io/) or [CloudFormation](https://aws.amazon.com/cloudformation/)) with the Key "Backup" (with any value) which will trigger this script to back that instance up.
 
-If you'd like to specify the number of days to retain backups, set the key "Retention" with a numeric value.
+If you'd like to specify the number of days to retain backups, set the key "Retention" with a numeric value.  If you do not specify this, by default keeps the AMIs for 7 days.
 
 ![ec2 image tag example](./snapshot.png)
 
