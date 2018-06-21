@@ -4,25 +4,36 @@
 #    https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots
 ####################
 import boto3
+import os
 import sys
 import datetime
 import time
 
-# List every region you'd like to scan.  To make this script faster, keep this as short as possible
+# List every region you'd like to scan.  We'll need to update this if AWS adds a region
 aws_regions = ['us-east-1','us-east-2','us-west-1','us-west-2',
 'ap-northeast-1','ap-northeast-2','ap-northeast-3','ap-south-1',
 'ap-southeast-1','ap-southeast-2','ca-central-1',
 'eu-central-1','eu-west-1','eu-west-2','eu-west-3']
+# If in serverless.yml we limited to a specific region(s)
+if 'LIMIT_TO_REGIONS' in os.environ and len(os.getenv('LIMIT_TO_REGIONS')):
+    aws_regions = os.getenv('LIMIT_TO_REGIONS').split(',')
 
 # List of the tags on instances we want to look for to backup
 tags_to_find = ['backup', 'Backup']
 
 # Default Retention Time (in days)
 default_retention_time = 7
+if 'DEFAULT_RETENTION_TIME' in os.environ and len(os.getenv('DEFAULT_RETENTION_TIME')):
+    default_retention_time = int(os.getenv('DEFAULT_RETENTION_TIME'))
 
 # This is the key we'll set on all AMIs we create, to detect that we are managing them
-global_key_to_tag_on = "FarleysBackupInstanceRotater"
+global_key_to_tag_on = "AWSAutomatedDailySnapshots"
+if 'KEY_TO_TAG_ON' in os.environ and len(os.getenv('KEY_TO_TAG_ON')):
+    global_key_to_tag_on = str(os.getenv('KEY_TO_TAG_ON'))
 
+dry_run = False
+if 'DRY_RUN' in os.environ and (os.getenv('DRY_RUN') == 'true' or os.getenv('DRY_RUN') == 'True'):
+    dry_run = True
 
 #####################
 # Helper function to backup tagged instances in a region
@@ -62,25 +73,32 @@ def backup_tagged_instances_in_region(ec2):
             retention_days = default_retention_time
         print('      Time: {} days'.format(retention_days))
         
-        # Create our AMI
-        image = ec2.create_image(
-            InstanceId=instance['InstanceId'],
-            Name="{}-backup-{}".format(instance_name, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')),
-            Description="Automatic Daily Backup of {} from {}".format(instance_name, instance['InstanceId']),
-            NoReboot=True,
-            DryRun=False
-        )
-        print("       AMI: {}".format(image['ImageId']))
-        
-        # Tag our AMI appropriately
-        delete_fmt = (datetime.date.today() + datetime.timedelta(days=retention_days)).strftime('%m-%d-%Y')
-        instance['Tags'].append({'Key': 'DeleteAfter', 'Value': delete_fmt})
-        instance['Tags'].append({'Key': 'OriginalInstanceID', 'Value': instance['InstanceId']})
-        instance['Tags'].append({'Key': global_key_to_tag_on, 'Value': 'true'})
-        response = ec2.create_tags(
-            Resources=[image['ImageId']],
-            Tags=instance['Tags']
-        )
+        # Catch if we were dry-running this
+        if dry_run:
+            print("DRY_RUN: Would have created an AMI...")
+            print("   InstanceId : {}".format(instance['InstanceId']))
+            print("   Name       : {}".format("{}-backup-{}".format(instance_name, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))))
+        else:
+            pass
+            # Create our AMI
+            image = ec2.create_image(
+                InstanceId=instance['InstanceId'],
+                Name="{}-backup-{}".format(instance_name, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')),
+                Description="Automatic Daily Backup of {} from {}".format(instance_name, instance['InstanceId']),
+                NoReboot=True,
+                DryRun=False
+            )
+            print("       AMI: {}".format(image['ImageId']))
+            
+            # Tag our AMI appropriately
+            delete_fmt = (datetime.date.today() + datetime.timedelta(days=retention_days)).strftime('%m-%d-%Y')
+            instance['Tags'].append({'Key': 'DeleteAfter', 'Value': delete_fmt})
+            instance['Tags'].append({'Key': 'OriginalInstanceID', 'Value': instance['InstanceId']})
+            instance['Tags'].append({'Key': global_key_to_tag_on, 'Value': 'true'})
+            response = ec2.create_tags(
+                Resources=[image['ImageId']],
+                Tags=instance['Tags']
+            )
 
 
 #####################
@@ -118,23 +136,30 @@ def delete_expired_amis(ec2):
 
         # Figure out if we should delete this AMI
         delete_date = time.strptime(delete_after, "%m-%d-%Y")
-        if today_date <= delete_date:
+        if today_date < delete_date:
             print("This item is too new, skipping...")
             continue
 
-        # Delete this AMI...
-        print(" === DELETING AMI : {}".format(ami['ImageId']))
-        try:
-            amiResponse = ec2.deregister_image( ImageId=ami['ImageId'] )
-        except Exception as e:
-            print("Unable to delete AMI: {}".format(e))
-
-        # Delete all snapshots underneath that ami...
-        for snapshot in [i['Ebs']['SnapshotId'] for i in ami['BlockDeviceMappings'] if 'Ebs' in i]:
-            print(" === DELETING AMI {} SNAPSHOT : {}".format(ami['ImageId'], snapshot))
-            result = ec2.delete_snapshot(SnapshotId=snapshot)
-            print(result)
-
+        # Catch if we were dry-running this
+        if dry_run:
+            print("DRY_RUN, would have deleted ami : {}".format(ami['ImageId']))
+            for snapshot in [i['Ebs']['SnapshotId'] for i in ami['BlockDeviceMappings'] if 'Ebs' in i]:
+                print("DRY_RUN, would have deleted volume snapshot {}".format(ami['ImageId'], snapshot))
+        else:
+            # Delete this AMI...
+            print(" === DELETING AMI : {}".format(ami['ImageId']))
+            try:
+                amiResponse = ec2.deregister_image( ImageId=ami['ImageId'] )
+            except Exception as e:
+                print("Unable to delete AMI: {}".format(e))
+            
+            # Delete all snapshots underneath that ami...
+            for snapshot in [i['Ebs']['SnapshotId'] for i in ami['BlockDeviceMappings'] if 'Ebs' in i]:
+                print(" === DELETING AMI {} SNAPSHOT : {}".format(ami['ImageId'], snapshot))
+                try:
+                    result = ec2.delete_snapshot(SnapshotId=snapshot)
+                except Exception as e:
+                    print("Unable to delete snapshot: {}".format(e))
 
 
 #####################
