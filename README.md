@@ -88,6 +88,33 @@ If you'd like to tweak this function it's very easy to do without ever having to
  * **KEY_TO_TAG_ON** is the tag that this script will set on any AMI it creates.  This is what we will scan for to cleanup AMIs afterwards.  WARNING: Changing this value will cause any previous AMIs this script made to suddenly be hidden to this script, so you will need to delete yourself.
  * **LIMIT_TO_REGIONS** helps to speed this script up a lot by not wasting time scanning regions you aren't actually using.  So, if you'd like this script to speed up then set the this to the regions (comma-delimited) you wish to only scan.  Eg: us-west-1,eu-west-1.
 
+## Scheduling Backups At Specific Start Times
+- ref: [Schedule Expressions Using Rate or Cron](https://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html)
+* If you wish to schedule the time for your AMI backups, simply edit the serverless.yml `rate` and use the cron syntax as follows:
+I.e.: Invoke our Lambda automated AMI/snapshot backups function start time for 09:00am (UTC) everyday (which is currently 2AM PST with DLST in effect):
+    ```
+    egrep -A 1 'rate:' ./serverless.yml
+    #rate: rate(1 day) # this is the default value
+    rate: cron(0 09 * * ? *)
+    enabled: true
+    ```
+
+## Validate Our AMIs with AWS CLI Commands and Filtering
+* The below example command shows the desired metadata from all of all our automated AMI's created with the tag and key value pair: Backup / true
+    ```
+    aws ec2 describe-images --owners self --filters "Name=tag:Backup,Values=true"  \
+    --query 'Images[ * ].{ID:ImageId, ImgName:Name, Owner:OwnerId, Tag:Description, CreationDate:CreationDate}' |  jq .
+    [
+    {
+        "ID": "ami-123c8a43",
+        "ImgName": "myserver.mydomain.com-backup-2018-07-02-09-00-34",
+        "Owner": "012345678901",
+        "Tag": "Automatic Daily Backup of myserver.mydomain.com from i-098765b1a132aa1b",
+        "CreationDate": "2018-07-02T09:00:34.000Z"
+    },
+     ...
+    ```
+
 ## Removal
 
 Simple remove with the serverless remove command.  Please keep in mind any AMIs this script may have created will still be in place, you will need to delete those yourself.
