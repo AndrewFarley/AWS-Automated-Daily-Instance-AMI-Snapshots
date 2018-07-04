@@ -108,11 +108,10 @@ def backup_tagged_instances_in_region(ec2):
                     Resources=[image['ImageId']],
                     Tags=instance['Tags']
                 )
-        except:
-            print("Failure trying to create image or tag image.  See/report exception below")
-            exc_info = sys.exc_info()
-            traceback.print_exception(*exc_info)
-
+            except:
+                print("Failure trying to create image or tag image.  See/report exception below")
+                exc_info = sys.exc_info()
+                traceback.print_exception(*exc_info)
 
 
 #####################
