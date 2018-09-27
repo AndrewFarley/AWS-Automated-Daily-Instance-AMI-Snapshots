@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ####################
 # NOTE: This code is from 
-#    https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots
+#    https://github.com/AndrewFarley/AWS-Automated-Daily-Instance-AMI-Snapshots
 ####################
 import boto3
 import os
