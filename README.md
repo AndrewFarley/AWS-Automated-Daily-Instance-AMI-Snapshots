@@ -1,7 +1,7 @@
 # Create Rotating Instance AMIs Backups
 With serverless!
 
-**Found at:** https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots
+**Found at:** https://github.com/AndrewFarley/AWS-Automated-Daily-Instance-AMI-Snapshots
 ## Author
 * Farley - farley _at_ **neonsurge** _dot_ com
 
@@ -32,8 +32,8 @@ With serverless!
 aws configure
 
 # Clone this repository with...
-git clone git@github.com:AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots.git
-cd AWSAutomatedDailyInstanceAMISnapshots
+git clone git@github.com:AndrewFarley/AWS-Automated-Daily-Instance-AMI-Snapshots.git
+cd AWS-Automated-Daily-Instance-AMI-Snapshots
 
 # Deploy it with...
 serverless deploy
