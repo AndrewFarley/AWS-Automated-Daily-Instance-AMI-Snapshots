@@ -104,6 +104,11 @@ def backup_tagged_instances_in_region(ec2):
                 instance['Tags'].append({'Key': 'DeleteAfter', 'Value': delete_fmt})
                 instance['Tags'].append({'Key': 'OriginalInstanceID', 'Value': instance['InstanceId']})
                 instance['Tags'].append({'Key': global_key_to_tag_on, 'Value': 'true'})
+                # Remove any tags prefixed with aws: since they are internal and we aren't allowed to set.  These can come from CloudFormation, or from Autoscalers
+                for index, item in enumerate(instance['Tags']):
+                    if item['Key'].startswith('aws:'):
+                        print("Skipping setting internal aws set {}".format(item['Key']))
+                        del instance['Tags'][index]
                 response = ec2.create_tags(
                     Resources=[image['ImageId']],
                     Tags=instance['Tags']
