@@ -108,8 +108,8 @@ def backup_tagged_instances_in_region(ec2):
                 finaltags = []
                 for index, item in enumerate(instance['Tags']):
                     if item['Key'].startswith('aws:'):
-                        print("Skipping setting internal aws tag: {}".format(item['Key']))
-                        del instance['Tags'][index]
+                        print("Modifying internal aws tag so it doesn't fail: {}".format(item['Key']))
+                        finaltags.append({'Key': 'internal-{}'.format(item['Key']), 'Value': item['Value']})
                     else:
                         finaltags.append(item)
                 response = ec2.create_tags(
