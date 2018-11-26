@@ -16,10 +16,10 @@ With serverless!
 1. This lambda is given a limited role to allow it to do only what it needs to do, no funny stuff
 1. This also tells CloudWatch Events to run this automatically once a day (adjustable)
 1. When this lambda runs it scans through every region...
-  * For any instances with the tag Key of "backup"
-    * If it finds any it will create a snapshot of them, preserving all the tags in the AMI (but not in the volume snapshots, see Issue #2).
-  * For any volumes with the tag Key of "backup"
-    * If it finds any, it will create a snapshot of this volume, preserving all tags from the original volume.
+    1. For any instances with the tag Key of "backup"
+    1. If it finds any it will create a snapshot of them, preserving all the tags in the AMI (but not in the volume snapshots, see Issue #2).
+    1. For any volumes with the tag Key of "backup"
+    1. If it finds any, it will create a snapshot of this volume, preserving all tags from the original volume.
 1. After its done taking snapshots, it will then scan through all the AMIs and snapshots that this script previously created, and will evaluate if it's time to delete those items if they are old enough.
 
 
