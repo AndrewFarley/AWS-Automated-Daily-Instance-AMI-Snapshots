@@ -43,7 +43,7 @@ cd AWS-Automated-Daily-Instance-AMI-Snapshots
 serverless deploy
 
 # Run it manually with...
-serverless invoke --function daily_snapshot --log
+serverless invoke --function execute_handler --log
 ```
 
 Now go tag your instances or volumes (manually, or automatically if you have an automated infrastructure like [Terraform](https://www.terraform.io/) or [CloudFormation](https://aws.amazon.com/cloudformation/)) with the Key "backup" (with any value) which will trigger this script to back that instance up.
@@ -55,7 +55,7 @@ If you'd like to specify the number of days to retain backups, set the key "Rete
 After tagging some servers, try to run it manually again and check the output to see if it detected your server. To make sure your tag works, go run the lambda yourself manually and check the log output.  If you tagged some instances and it ran successfully, your output will look something like this...
 
 ```bash
-bash-3.2$ serverless invoke --function daily_snapshot --log
+bash-3.2$ serverless invoke --function execute_handler --log
 --------------------------------------------------------------------
 Scanning region: eu-central-1
 Scanning for instances with tags (backup,Backup)
@@ -83,7 +83,7 @@ Scanning region: eu-west-2
 Now every day, once a day this lambda will run and automatically make no-downtime snapshots of your servers and/or volumes.
 
 ## Updating
-If you'd like to tweak this function it's very easy to do without ever having to edit code or re-deploy it.  Simply edit the environment variables of the Lambda.  If you didn't change the region this deploys to, you should be able to [CLICK HERE](https://eu-west-1.console.aws.amazon.com/lambda/home?region=eu-west-1#/functions/daily-instance-snapshot-dev-daily_snapshot) and simply update any of the environment variables in the Lambda and hit save.  Seen below...
+If you'd like to tweak this function it's very easy to do without ever having to edit code or re-deploy it.  Simply edit the environment variables of the Lambda.  If you didn't change the region this deploys to, you should be able to [CLICK HERE](https://eu-west-1.console.aws.amazon.com/lambda/home?region=eu-west-1#/functions/daily-instance-snapshot-dev-execute_handler) and simply update any of the environment variables in the Lambda and hit save.  Seen below...
 
 ![lambda update env variable](./snapshot2.png)
 
@@ -93,18 +93,37 @@ If you'd like to tweak this function it's very easy to do without ever having to
  * **LIMIT_TO_REGIONS** helps to speed this script up a lot by not wasting time scanning regions you aren't actually using.  So, if you'd like this script to speed up then set the this to the regions (comma-delimited) you wish to only scan.  Eg: us-west-1,eu-west-1.
 
 ## Scheduling Backups At Specific Start Times
-- ref: [Schedule Expressions Using Rate or Cron](https://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html)
-* If you wish to schedule the time for your AMI backups, simply edit the serverless.yml `rate` and use the cron syntax as follows:
-I.e.: Invoke our Lambda automated AMI/snapshot backups function start time for 09:00am (UTC) everyday (which is currently 2AM PST with DLST in effect):
-    ```
-    egrep -A 1 'rate:' ./serverless.yml
-    #rate: rate(1 day) # this is the default value
-    rate: cron(0 09 * * ? *)
-    enabled: true
-    ```
+If you wish to schedule the time for your AMI backups, simply edit the serverless.yml `rate` and use the cron syntax as follows.
+```yaml
+# Replace this line...
+rate: rate(1 day)
+# With this...
+rate: cron(0 0 * * ? *)
+```
 
-## Validate Our AMIs with AWS CLI Commands and Filtering
-* The below example command shows the desired metadata from all of all our automated AMI's created with the tag and key value pair: Backup / true
+For Reference on the cron format, see: [Amazon Lambda Scheduling with Rate or Cron](https://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html)
+
+**NOTE:** Keep in mind Amazon uses UTC time, so the above is at midnight in UTC, which is usually 8 hours ahead of California (PST) time for example.  If you wanted midnight in PST, you'd need to add 8 hours to this, making the line `cron(0 8 * * ? *)`
+
+## Alternate Operation - Run Weekly, Expire After A Month
+If you want to run this script in an "alternate" mode where it snapshots once a week, and expires after one month you can do this.  Please run these four commands on a freshly checked out copy of this repo, these will run on OS-X or Linux.
+
+```sh
+# First, replace our rate of once a day, to once a week on saturday
+sed 's/rate(1 day)/cron(0 0 ? * SAT *)/' < serverless.yml > serverless.yml.tmp && cat serverless.yml.tmp > serverless.yml
+# Second, replace our stack name, so it makes sense (and we can deploy this multiple times)
+sed 's/daily-instance-snapshot/weekly-instance-snapshot/' < serverless.yml > serverless.yml.tmp && cat serverless.yml.tmp > serverless.yml
+# Third, set our retention time to 30 days
+sed 's/DEFAULT_RETENTION_TIME: "7"/DEFAULT_RETENTION_TIME: "30"/' < serverless.yml > serverless.yml.tmp && cat serverless.yml.tmp > serverless.yml
+# Fourth, change the name of the key to tag on so we can deploy this at the same time as the daily snapshot (default) deployment
+sed 's/KEY_TO_TAG_ON: "AWSAutomatedDailySnapshots"/KEY_TO_TAG_ON: "AWSAutomatedWeeklySnapshots"/' < serverless.yml > serverless.yml.tmp && cat serverless.yml.tmp > serverless.yml
+```
+_and yes, I know you could use in-place sed, but this works differently on OS-X_
+
+Feel free to adjust the above to any other specifications you desire.  Some good examples might be running once a month, expire after a year, once a week expire after 6 months, once every 3 days expire after a month, etc.
+
+## Validate AMIs with AWS CLI Commands and Filtering
+To validate that images have been created you can view your AMIs section under the AWS Console in EC2.  Alternatively, you can use the following command-line example.
     ```
     aws ec2 describe-images --owners self --filters "Name=tag:Backup,Values=true"  \
     --query 'Images[ * ].{ID:ImageId, ImgName:Name, Owner:OwnerId, Tag:Description, CreationDate:CreationDate}' |  jq .

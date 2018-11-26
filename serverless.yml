@@ -43,8 +43,8 @@ provider:
 # Our function definition
 ##############################
 functions:
-  daily_snapshot:
-    description: This does a daily snapshot of all our instances we want to be manually backed up to AMIs
+  execute_handler:
+    description: This does a snapshot of all our instances we want to be manually backed up to AMIs and attempts to delete expired volumes
     handler: handler.lambda_handler
     events:
       - schedule:
