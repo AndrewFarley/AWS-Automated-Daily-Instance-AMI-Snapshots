@@ -120,7 +120,13 @@ I.e.: Invoke our Lambda automated AMI/snapshot backups function start time for 0
     ```
 
 ## Notes/Warnings
-**PLEASE NOTE:** This script will **NOT** restart your instances nor interrupt your servers as this may anger you or your client, and I wouldn't want to be responsible for that.  Because of this, Amazon can't guarantee the file system integrity of the created image, but generally most backups are perfectly fine (every single one I've ever tested).  In practice, only if you have heavy disk io does this ever cause a problem, typically for heavy load database servers.  For these type of servers, you are better  instead running a daily cronjob on them to force your database to sync to file (eg: CHECKPOINT in pgsql) and then initiating an AMI snapshot.  This is outside the scope of this solution.  You'll have to do this yourself or scrounge the net for example scripts.
+**PLEASE NOTE:** This script will **NOT** restart your instances nor interrupt your servers as this may anger you or your client, and I wouldn't want to be responsible for that.  
+
+Because of this, Amazon can't guarantee the file system integrity of the created image, but generally most backups are perfectly fine.  Almost every single one I've ever tested, of the thousands of AMIs I've made over the course of the last 8 years I've only had a handful of bad eggs.
+
+In practice, only if you have heavy disk io does this ever cause a problem, typically for heavy load database servers.  For these type of servers, you are better  instead running a daily cronjob on them to force your database to sync to file (eg: CHECKPOINT in pgsql) and then initiating an AMI snapshot.  
+
+If you want this, you'll have to do this yourself or scrounge the net for example scripts.
 
 
 ## Removal
