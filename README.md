@@ -124,19 +124,19 @@ Feel free to adjust the above to any other specifications you desire.  Some good
 
 ## Validate AMIs with AWS CLI Commands and Filtering
 To validate that images have been created you can view your AMIs section under the AWS Console in EC2.  Alternatively, you can use the following command-line example.
-    ```
-    aws ec2 describe-images --owners self --filters "Name=tag:Backup,Values=true"  \
-    --query 'Images[ * ].{ID:ImageId, ImgName:Name, Owner:OwnerId, Tag:Description, CreationDate:CreationDate}' |  jq .
-    [
-    {
-        "ID": "ami-123c8a43",
-        "ImgName": "myserver.mydomain.com-backup-2018-07-02-09-00-34",
-        "Owner": "012345678901",
-        "Tag": "Automatic Daily Backup of myserver.mydomain.com from i-098765b1a132aa1b",
-        "CreationDate": "2018-07-02T09:00:34.000Z"
-    },
-     ...
-    ```
+```sh
+aws ec2 describe-images --owners self --filters "Name=tag:Backup,Values=true"  \
+--query 'Images[ * ].{ID:ImageId, ImgName:Name, Owner:OwnerId, Tag:Description, CreationDate:CreationDate}' |  jq .
+[
+{
+    "ID": "ami-123c8a43",
+    "ImgName": "myserver.mydomain.com-backup-2018-07-02-09-00-34",
+    "Owner": "012345678901",
+    "Tag": "Automatic Daily Backup of myserver.mydomain.com from i-098765b1a132aa1b",
+    "CreationDate": "2018-07-02T09:00:34.000Z"
+},
+ ...
+```
 
 ## Notes/Warnings
 **PLEASE NOTE:** This script will **NOT** restart your instances nor interrupt your servers as this may anger you or your client, and I wouldn't want to be responsible for that.  
