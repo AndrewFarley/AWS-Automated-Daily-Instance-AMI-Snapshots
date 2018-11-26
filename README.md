@@ -122,9 +122,9 @@ I.e.: Invoke our Lambda automated AMI/snapshot backups function start time for 0
 ## Notes/Warnings
 **PLEASE NOTE:** This script will **NOT** restart your instances nor interrupt your servers as this may anger you or your client, and I wouldn't want to be responsible for that.  
 
-Because of this, Amazon can't guarantee the file system integrity of the created image, but generally most backups are perfectly fine.  Almost every single one I've ever tested, of the thousands of AMIs I've made over the course of the last 8 years I've only had a handful of bad eggs.
+Because of this, Amazon can't guarantee the file system integrity of the created image, but generally most backups are perfectly fine.  Almost every single one I've ever tested, of the thousands of AMIs I've made over the course of the last 8 years have been perfectly fine.  I've only had a handful of bad eggs, and if you use these backups with something like autoscaling with health checks, then any issues in AMIs should be rooted out fairly quickly (as they never get healthy).
 
-In practice, only if you have heavy disk io does this ever cause a problem, typically for heavy load database servers.  For these type of servers, you are better  instead running a daily cronjob on them to force your database to sync to file (eg: CHECKPOINT in pgsql) and then initiating an AMI snapshot.  
+In practice, only if you have heavy disk IO does this ever cause a problem for example on heavily loaded database servers.  For these type of servers, you are better off running a daily cronjob on them to force your database to sync to file (eg: CHECKPOINT in pgsql) and then initiating an AMI snapshot.  
 
 If you want this, you'll have to do this yourself or scrounge the net for example scripts.
 
@@ -137,13 +137,18 @@ Simple remove with the serverless remove command.  Please keep in mind any AMIs 
 serverless remove
 ```
 
-
 ## Changelog / Major Recent Features
 
 * June 6, 2018  - Initial public release
 * June 21, 2018 - Moved configuration to env variables, bugfix, more exception handling
 * September 27, 2018 - [Bugfix, internal AWS tags prefixed with aws: caused failures, renaming those tag keys](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/pull/8)
 * November 26, 2018 - [Feature Snapshot Volumes added](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/pull/11), thanks @milvain for the [idea](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/issues/9)
+
+## Adoption / Usage
+
+This script is in use at a number of my clients including [OlinData](https://olindata.com), [Shake-On](https://www.shake-on.com/), [Xeelas](https://xeelas.nl) and [RVillage](https://rvillage.com), and a few others which I can not name.
+
+If you're happily using this script somewhere for a client to make them super happy let me know so I can add a section here for shoutouts to happy customers.  +1 to open source eh?
 
 ## Support, Feedback & Questions
 
