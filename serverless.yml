@@ -9,7 +9,7 @@ frameworkVersion: ">=1.26.0 <2.0.0"
 ##############################
 provider:
   name: aws                       # Which provider to use
-  description: "Daily Snapshot Rotation Lambda"
+  description: "AWS Automated Instance AMI Snapshots and Volumes"
   stage: ${opt:stage, 'dev'}      # Which stage to deploy to
   runtime: python3.6              # Which Lambda runtime to use
   logRetentionInDays: 30          # How many days we want to maintain logs in CloudWatch
@@ -43,8 +43,8 @@ provider:
 # Our function definition
 ##############################
 functions:
-  daily_snapshot:
-    description: This does a daily snapshot of all our instances we want to be manually backed up to AMIs
+  execute_handler:
+    description: This does a snapshot of all our instances we want to be manually backed up to AMIs and attempts to delete expired volumes
     handler: handler.lambda_handler
     events:
       - schedule:

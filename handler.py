@@ -120,7 +120,7 @@ def backup_tagged_volumes_in_region(ec2):
                     pass
 
                 snapshot = ec2.create_snapshot(
-                    Description="Automatic Daily Backup of {} from {}".format(volume_name, volume['VolumeId']),
+                    Description="Automatic Backup of {} from {}".format(volume_name, volume['VolumeId']),
                     VolumeId=volume['VolumeId'],
                     TagSpecifications=[{
                         'ResourceType': 'snapshot',
@@ -247,7 +247,7 @@ def backup_tagged_instances_in_region(ec2):
                 image = ec2.create_image(
                     InstanceId=instance['InstanceId'],
                     Name="{}-backup-{}".format(instance_name, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S.%f')),
-                    Description="Automatic Daily Backup of {} from {}".format(instance_name, instance['InstanceId']),
+                    Description="Automatic Backup of {} from {}".format(instance_name, instance['InstanceId']),
                     NoReboot=True,
                     DryRun=False
                 )
