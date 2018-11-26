@@ -27,12 +27,15 @@ provider:
   # We must be able to do what this script needs to do... 
   - Effect: Allow
     Action:
+      - ec2:CreateImage
+      - ec2:CreateSnapshot
+      - ec2:CreateTags
+      - ec2:DeleteSnapshot
+      - ec2:DeregisterImage
       - ec2:DescribeImages
       - ec2:DescribeInstances
-      - ec2:CreateImage
-      - ec2:CreateTags
-      - ec2:DeregisterImage
-      - ec2:DeleteSnapshot
+      - ec2:DescribeSnapshots
+      - ec2:DescribeVolumes
     Resource: "*"
 
 

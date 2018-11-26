@@ -1,4 +1,4 @@
-# Create Rotating Instance AMIs Backups
+# Create Rotating Instance AMIs and Volume Backups
 With serverless!
 
 **Found at:** https://github.com/AndrewFarley/AWS-Automated-Daily-Instance-AMI-Snapshots
@@ -6,17 +6,21 @@ With serverless!
 * Farley - farley _at_ **neonsurge** _dot_ com
 
 ## Purpose
-1. A nearly idiot-proof way to begin doing automated daily snapshots of instances across your entire AWS account.
-1. To promote people to back-things-up, by giving them an easy way to begin doing so.
+1. A nearly idiot-proof way to begin doing automated regular snapshots across your entire AWS account for both instances AND individual volumes.
+1. To promote people to back things up by giving them an easy **and** affordable way to begin doing so.
 1. To try to save them money in regards to backups by deleting them after a while (7 days by default)
 
 
 ## What does this do...?
-1. This uses the serverless framework, which deploys a Lambda to your AWS account in the eu-west-1 region (adjustable)
+1. This uses the serverless framework, which deploys a Lambda to your AWS account in the eu-west-1 region (adjustable, but pointless to change)
 1. This lambda is given a limited role to allow it to do only what it needs to do, no funny stuff
-1. This also tells CloudWatch Events to run this automatically once a day
-1. When this lambda runs, it scans through every region for any instances with the tag Key of "backup".  If it finds any, it will create a snapshot of them, preserving all the tags in the AMI (but not in the volume snapshots, see Issue #2)
-1. After its done taking snapshots, it will then scan through all the AMIs that this script previously created, and will evaluate if it's time to delete those AMIs if they are old enough
+1. This also tells CloudWatch Events to run this automatically once a day (adjustable)
+1. When this lambda runs it scans through every region...
+  * For any instances with the tag Key of "backup"
+    * If it finds any it will create a snapshot of them, preserving all the tags in the AMI (but not in the volume snapshots, see Issue #2).
+  * For any volumes with the tag Key of "backup"
+    * If it finds any, it will create a snapshot of this volume, preserving all tags from the original volume.
+1. After its done taking snapshots, it will then scan through all the AMIs and snapshots that this script previously created, and will evaluate if it's time to delete those items if they are old enough.
 
 
 ## Prerequisites
@@ -42,7 +46,7 @@ serverless deploy
 serverless invoke --function daily_snapshot --log
 ```
 
-Now go tag your instances (manually, or automatically if you have an automated infrastructure like [Terraform](https://www.terraform.io/) or [CloudFormation](https://aws.amazon.com/cloudformation/)) with the Key "Backup" (with any value) which will trigger this script to back that instance up.
+Now go tag your instances or volumes (manually, or automatically if you have an automated infrastructure like [Terraform](https://www.terraform.io/) or [CloudFormation](https://aws.amazon.com/cloudformation/)) with the Key "backup" (with any value) which will trigger this script to back that instance up.
 
 If you'd like to specify the number of days to retain backups, set the key "Retention" with a numeric value.  If you do not specify this, by default keeps the AMIs for 7 days.
 
@@ -76,7 +80,7 @@ Scanning region: eu-west-2
 ```
 
 ### That's IT!
-Now every day, once a day this lambda will run and automatically make no-downtime snapshots of your servers.
+Now every day, once a day this lambda will run and automatically make no-downtime snapshots of your servers and/or volumes.
 
 ## Updating
 If you'd like to tweak this function it's very easy to do without ever having to edit code or re-deploy it.  Simply edit the environment variables of the Lambda.  If you didn't change the region this deploys to, you should be able to [CLICK HERE](https://eu-west-1.console.aws.amazon.com/lambda/home?region=eu-west-1#/functions/daily-instance-snapshot-dev-daily_snapshot) and simply update any of the environment variables in the Lambda and hit save.  Seen below...
@@ -115,6 +119,16 @@ I.e.: Invoke our Lambda automated AMI/snapshot backups function start time for 0
      ...
     ```
 
+## Notes/Warnings
+**PLEASE NOTE:** This script will **NOT** restart your instances nor interrupt your servers as this may anger you or your client, and I wouldn't want to be responsible for that.  
+
+Because of this, Amazon can't guarantee the file system integrity of the created image, but generally most backups are perfectly fine.  Almost every single one I've ever tested, of the thousands of AMIs I've made over the course of the last 8 years have been perfectly fine.  I've only had a handful of bad eggs, and if you use these backups with something like autoscaling with health checks, then any issues in AMIs should be rooted out fairly quickly (as they never get healthy).
+
+In practice, only if you have heavy disk IO does this ever cause a problem for example on heavily loaded database servers.  For these type of servers, you are better off running a daily cronjob on them to force your database to sync to file (eg: CHECKPOINT in pgsql) and then initiating an AMI snapshot.  
+
+If you want this, you'll have to do this yourself or scrounge the net for example scripts.
+
+
 ## Removal
 
 Simple remove with the serverless remove command.  Please keep in mind any AMIs this script may have created will still be in place, you will need to delete those yourself.
@@ -123,16 +137,21 @@ Simple remove with the serverless remove command.  Please keep in mind any AMIs 
 serverless remove
 ```
 
-
 ## Changelog / Major Recent Features
 
 * June 6, 2018  - Initial public release
 * June 21, 2018 - Moved configuration to env variables, bugfix, more exception handling
 * September 27, 2018 - [Bugfix, internal AWS tags prefixed with aws: caused failures, renaming those tag keys](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/pull/8)
+* November 26, 2018 - [Feature Snapshot Volumes added](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/pull/11), thanks [@milvain](https://github.com/milvain) for the [idea](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/issues/9)
 
+## Adoption / Usage
+
+This script is in use at a number of my clients including [OlinData](https://olindata.com), [Shake-On](https://www.shake-on.com/), [Xeelas](https://xeelas.nl) and [RVillage](https://rvillage.com), and a few others which I can not name.
+
+If you're happily using this script somewhere for a client to make them super happy let me know so I can add a section here for shoutouts to happy customers.  +1 to open source eh?
 
 ## Support, Feedback & Questions
 
-Please feel free to file Github bugs if you find any.  If you're technically minded, please feel free to fork and make your own modifications.  If you make any fixed/changes that are awesome, please send me pull requests or patches.
+Please feel free to file Github bugs if you find any or suggestions for features!  If you're technically minded, please feel free to fork and make your own modifications.  If you make any fixed/changes that are awesome, please send me pull requests or patches.
 
 If you have any questions/problems beyond that, feel free to email me at one of the emails in [author](#author) above.
