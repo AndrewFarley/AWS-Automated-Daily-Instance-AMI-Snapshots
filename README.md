@@ -137,7 +137,7 @@ serverless remove
 * June 6, 2018  - Initial public release
 * June 21, 2018 - Moved configuration to env variables, bugfix, more exception handling
 * September 27, 2018 - [Bugfix, internal AWS tags prefixed with aws: caused failures, renaming those tag keys](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/pull/8)
-* November 26, 2018 - Feature Snapshot Volumes added, thanks @milvain for the (idea)[#9]
+* November 26, 2018 - [Feature Snapshot Volumes added](#11), thanks @milvain for the [idea](#9)
 
 ## Support, Feedback & Questions
 
