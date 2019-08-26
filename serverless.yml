@@ -61,3 +61,4 @@ package:
     - ".serverless"
     - "requirements.txt"
     - "**.md"
+    - "*.png"
