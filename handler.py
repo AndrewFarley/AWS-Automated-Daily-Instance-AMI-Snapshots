@@ -349,16 +349,19 @@ def lambda_handler(event, context):
 
     # For each region we want to scan...
     for aws_region in aws_regions:
-        ec2 = boto3.client('ec2', region_name=aws_region)
-        print("Scanning region: {}".format(aws_region))
+        try:
+            ec2 = boto3.client('ec2', region_name=aws_region)
+            print("Scanning region: {}".format(aws_region))
 
-        # Volumes...
-        backup_tagged_volumes_in_region(ec2)   # First, backup tagged volumes in that region
-        delete_expired_snapshots(ec2)            # Then delete snapshots that have expired
+            # Volumes...
+            backup_tagged_volumes_in_region(ec2)   # First, backup tagged volumes in that region
+            delete_expired_snapshots(ec2)            # Then delete snapshots that have expired
 
-        # AMIs...
-        backup_tagged_instances_in_region(ec2) # First, backup tagged instances in that region
-        delete_expired_amis(ec2)               # Then, go delete AMIs that have expired in that region
+            # AMIs...
+            backup_tagged_instances_in_region(ec2) # First, backup tagged instances in that region
+            delete_expired_amis(ec2)               # Then, go delete AMIs that have expired in that region
+        except Exception as e:
+            print("Uncaught exception in main region loop: {}".format(e))
 
 
 # If ran on the CLI, go ahead and run it
