@@ -26,20 +26,22 @@ provider:
     KEY_TO_TAG_ON: "AWSAutomatedDailySnapshots"  # This is the key we will scan for to detect if this script is managing a snapshot, by default this is "AWSAutomatedDailySnapshots".  Warning: the first version of this plugin had this value at: FarleysBackupInstanceRotater but it has since changed.  Please go manually delete any AMIs with the old name
   # deploymentBucket:
   #   name: set-me-to-an-existing-bucket  # Name of an existing bucket to use, if not specified then will be created by serverless
-  iamRoleStatements:
-  # We must be able to do what this script needs to do...
-  - Effect: Allow
-    Action:
-      - ec2:CreateImage
-      - ec2:CreateSnapshot
-      - ec2:CreateTags
-      - ec2:DeleteSnapshot
-      - ec2:DeregisterImage
-      - ec2:DescribeImages
-      - ec2:DescribeInstances
-      - ec2:DescribeSnapshots
-      - ec2:DescribeVolumes
-    Resource: "*"
+  iam:
+    role:
+      statements:
+        # We must be able to do what this script needs to do...
+        - Effect: Allow
+          Action:
+            - ec2:CreateImage
+            - ec2:CreateSnapshot
+            - ec2:CreateTags
+            - ec2:DeleteSnapshot
+            - ec2:DeregisterImage
+            - ec2:DescribeImages
+            - ec2:DescribeInstances
+            - ec2:DescribeSnapshots
+            - ec2:DescribeVolumes
+          Resource: "*"
 
 
 ##############################
