@@ -11,12 +11,11 @@ configValidationMode: error
 # Our service provider and runtime/region definitions
 ##############################
 provider:
-  lambdaHashingVersion: 20201221  # See: https://www.serverless.com/framework/docs/deprecations/#LAMBDA_HASHING_VERSION_V2
   name: aws                       # Which provider to use
   stage: ${opt:stage, 'dev'}      # Which stage to deploy to
   runtime: python3.8              # Which Lambda runtime to use
   logRetentionInDays: 30          # How many days we want to maintain logs in CloudWatch
-  region: 'eu-west-1'             # Which AWS region to deploy in, eu-west-1 by default, but overridable
+  region: 'us-east-1'             # Which AWS region to deploy in, eu-west-1 by default, but overridable
   memorySize: 128                 # In megabytes, 128 minimum in 64MB increments
   timeout: 300                    # In seconds
   versionFunctions:  true         # We want to version our functions so we can revert if we need to
