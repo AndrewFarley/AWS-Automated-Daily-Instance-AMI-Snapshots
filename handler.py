@@ -11,12 +11,13 @@ import datetime
 import time
 
 # List every region you'd like to scan.  We'll need to update this if AWS adds a region
-# LAST UPDATED: July 10, 2022
+# Reference: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html
+# LAST UPDATED: December 9, 2022
 aws_regions = ['us-east-1','us-east-2','us-west-1','us-west-2',
 'af-south-1','ap-east-1','ap-northeast-1','ap-northeast-2','ap-northeast-3',
-'ap-south-1','ap-southeast-1','ap-southeast-2','ap-southeast-3','ca-central-1',
-'eu-central-1','eu-north-1','eu-south-1','eu-west-1','eu-west-2','eu-west-3','me-south-1',
-'sa-east-1','us-gov-east-1','us-gov-west-1']
+'ap-south-1','ap-south-2','ap-southeast-1','ap-southeast-2','ap-southeast-3','ca-central-1',
+'eu-central-1','eu-central-2','eu-north-1','eu-south-1','eu-south-2','eu-west-1','eu-west-2',
+'eu-west-3','me-central-1','me-south-1','sa-east-1','us-gov-east-1','us-gov-west-1']
 # If in serverless.yml we limited to a specific region(s)
 if 'LIMIT_TO_REGIONS' in os.environ and len(os.getenv('LIMIT_TO_REGIONS')):
     aws_regions = os.getenv('LIMIT_TO_REGIONS').split(',')
