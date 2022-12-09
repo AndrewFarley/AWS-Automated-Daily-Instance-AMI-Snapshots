@@ -163,11 +163,13 @@ serverless remove
 * September 27, 2018 - [Bugfix, internal AWS tags prefixed with aws: caused failures, renaming those tag keys](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/pull/8)
 * November 26, 2018 - [Feature Snapshot Volumes added](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/pull/11), thanks [@milvain](https://github.com/milvain) for the [idea](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/issues/9)
 * November 26, 2018 - [Feature Documentation for Weekly Snapshots ](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/pull/12), thanks [@ChampionWolf](https://github.com/ChampionWolf) for the [idea](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/issues/10)
+* July 10, 2020 - Updating for Serverless 2.0 framework
+* November 12, 2022 - Adjusting IAM roles and further adjustments/standards for Serverless 2.0 framework, validating this tool still works great having just installed it on a few clients (it does!)
 
 
 ## Adoption / Usage
 
-This script is in use at a number of my clients including [OlinData](https://olindata.com), [Shake-On](https://www.shake-on.com/), [Xeelas](https://xeelas.nl) and [RVillage](https://rvillage.com), and a few others which I can not name.
+This script is in use at a number of my clients including [OlinData](https://olindata.com), [Shake-On](https://www.shake-on.com/), [Xeelas](https://xeelas.nl), [RVillage](https://rvillage.com), [Pharos](https://www.pharos.com), [Diversigen](https://www.diversigen.com), [Orasure](https://orasure.com) and others.
 
 If you're happily using this script somewhere for a client to make them super happy let me know so I can add a section here for shoutouts to happy customers.  +1 to open source eh?
 
