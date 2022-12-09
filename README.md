@@ -169,7 +169,7 @@ serverless remove
 
 ## Adoption / Usage
 
-This script is in use at a number of my clients including [OlinData](https://olindata.com), [Shake-On](https://www.shake-on.com/), [Xeelas](https://xeelas.nl), [RVillage](https://rvillage.com), [Pharos](https://www.pharos.com), [Diversigen](https://www.diversigen.com), [Orasure](https://orasure.com) and others.
+This script is in use at a number of my clients including [OlinData](https://olindata.com), [Shake-On](https://www.shake-on.com/), [Xeelas](https://xeelas.nl), [RVillage](https://rvillage.com), [Pharos](https://www.pharos.com), [Diversigen](https://www.diversigen.com), [Orasure](https://orasure.com), [RogersPOS](https://www.rogerspos.com) and others.
 
 If you're happily using this script somewhere for a client to make them super happy let me know so I can add a section here for shoutouts to happy customers.  +1 to open source eh?
 
