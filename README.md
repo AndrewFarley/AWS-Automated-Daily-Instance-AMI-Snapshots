@@ -158,14 +158,15 @@ serverless remove
 
 ## Changelog / Major Recent Features
 
-* June 6, 2018  - Initial public release
-* June 21, 2018 - Moved configuration to env variables, bugfix, more exception handling
-* September 27, 2018 - [Bugfix, internal AWS tags prefixed with aws: caused failures, renaming those tag keys](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/pull/8)
-* November 26, 2018 - [Feature Snapshot Volumes added](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/pull/11), thanks [@milvain](https://github.com/milvain) for the [idea](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/issues/9)
-* November 26, 2018 - [Feature Documentation for Weekly Snapshots ](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/pull/12), thanks [@ChampionWolf](https://github.com/ChampionWolf) for the [idea](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/issues/10)
-* July 10, 2020 - Updating for Serverless 2.0 framework
-* November 12, 2022 - Adjusting IAM roles and further adjustments/standards for Serverless 2.0 framework, validating this tool still works great having just installed it on a few clients (it does!)
-
+| Date           | Features / Milestones                                                                         |
+|----------------|-----------------------------------------------------------------------------------------------|
+| June 2018      | Initial public release, moved configuration to env variables, bugfixes, exception handling    |
+| September 2018 | [Bugfix, internal AWS tags prefixed with aws: caused failures, renaming those tag keys](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/pull/8) |
+| November 2018  | [Feature Snapshot Volumes added](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/pull/11), thanks [@milvain](https://github.com/milvain) for the [idea](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/issues/9) |
+| November 2018  | [Feature Documentation for Weekly Snapshots ](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/pull/12), thanks [@ChampionWolf](https://github.com/ChampionWolf) for the [idea](https://github.com/AndrewFarley/AWSAutomatedDailyInstanceAMISnapshots/issues/10) |
+| July 2022      | Updating for Serverless 2.0 framework |
+| November 2022  | Adjusting IAM roles and further adjustments/standards for Serverless 2.0 framework, validating this tool still works great having just installed it on a few clients (it does!) |
+| December 2022  | Updating to Python 3.9 and adding new AWS regions (ap-south-2, me-central-1, eu-south-2, eu-central-2) |
 
 ## Adoption / Usage
 
